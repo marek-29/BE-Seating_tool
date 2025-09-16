@@ -1,5 +1,5 @@
 import React from 'react';
-import { SeatingPlan, Table as TableType } from '../types';
+import { SeatingPlan } from '../types';
 import { Table } from './Table';
 import { Toolbar } from './Toolbar';
 

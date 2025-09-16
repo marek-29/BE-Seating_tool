@@ -22,11 +22,12 @@ function App() {
   const workspaceRef = useRef<HTMLDivElement>(null);
   
   const handleExportPDF = useCallback(() => {
-    if (!workspaceRef.current) return;
+    const element = workspaceRef.current;
+    if (!element) return;
 
     setSelectedTableId(null);
     setTimeout(() => {
-        exportToPDF(workspaceRef.current);
+        exportToPDF(element);
     }, 100);
   }, []);
 
@@ -156,11 +157,13 @@ function App() {
         // Ensure we have at least ['t', 'timestamp', 'seatNumber']
         if (idParts.length >= 3) {
           const seatNumberStr = idParts.pop(); // Get the last part (seatNumber)
-          const tableId = idParts.join('_');   // Re-join the rest for the tableId
-          const seatNumber = parseInt(seatNumberStr, 10);
-  
-          if (tableId && !isNaN(seatNumber)) {
-            dispatch({ type: 'ASSIGN_SEAT', participantId: dragItem.id, tableId, seatNumber });
+          if (seatNumberStr) {
+            const tableId = idParts.join('_');   // Re-join the rest for the tableId
+            const seatNumber = parseInt(seatNumberStr, 10);
+    
+            if (tableId && !isNaN(seatNumber)) {
+              dispatch({ type: 'ASSIGN_SEAT', participantId: dragItem.id, tableId, seatNumber });
+            }
           }
         }
       } else {

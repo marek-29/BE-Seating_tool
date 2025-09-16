@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { UndoIcon, RedoIcon, PdfIcon, ZoomInIcon, ZoomOutIcon, TableIcon } from './icons';
 

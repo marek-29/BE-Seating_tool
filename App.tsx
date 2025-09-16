@@ -22,12 +22,14 @@ function App() {
   const workspaceRef = useRef<HTMLDivElement>(null);
   
   const handleExportPDF = useCallback(() => {
-    const element = workspaceRef.current;
-    if (!element) return;
-
+    // Deselect table first to hide handles in the PDF
     setSelectedTableId(null);
+    // Use a timeout to wait for the UI to re-render before capturing
     setTimeout(() => {
-        exportToPDF(element);
+        const element = workspaceRef.current;
+        if (element) {
+            exportToPDF(element);
+        }
     }, 100);
   }, []);
 
@@ -154,11 +156,10 @@ function App() {
 
       if (chairElement) {
         const idParts = chairElement.id.split('_');
-        // Ensure we have at least ['t', 'timestamp', 'seatNumber']
         if (idParts.length >= 3) {
-          const seatNumberStr = idParts.pop(); // Get the last part (seatNumber)
-          if (seatNumberStr) {
-            const tableId = idParts.join('_');   // Re-join the rest for the tableId
+          const seatNumberStr = idParts.pop();
+          if (typeof seatNumberStr === 'string') {
+            const tableId = idParts.join('_');
             const seatNumber = parseInt(seatNumberStr, 10);
     
             if (tableId && !isNaN(seatNumber)) {

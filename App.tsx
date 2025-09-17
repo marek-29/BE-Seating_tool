@@ -22,14 +22,11 @@ function App() {
   const workspaceRef = useRef<HTMLDivElement>(null);
   
   const handleExportPDF = useCallback(() => {
-    // Deselect table first to hide handles in the PDF
+    if (!workspaceRef.current) return;
+
     setSelectedTableId(null);
-    // Use a timeout to wait for the UI to re-render before capturing
     setTimeout(() => {
-        const element = workspaceRef.current;
-        if (element) {
-            exportToPDF(element);
-        }
+        exportToPDF(workspaceRef.current);
     }, 100);
   }, []);
 
@@ -156,15 +153,14 @@ function App() {
 
       if (chairElement) {
         const idParts = chairElement.id.split('_');
+        // Ensure we have at least ['t', 'timestamp', 'seatNumber']
         if (idParts.length >= 3) {
-          const seatNumberStr = idParts.pop();
-          if (typeof seatNumberStr === 'string') {
-            const tableId = idParts.join('_');
-            const seatNumber = parseInt(seatNumberStr, 10);
-    
-            if (tableId && !isNaN(seatNumber)) {
-              dispatch({ type: 'ASSIGN_SEAT', participantId: dragItem.id, tableId, seatNumber });
-            }
+          const seatNumberStr = idParts.pop(); // Get the last part (seatNumber)
+          const tableId = idParts.join('_');   // Re-join the rest for the tableId
+          const seatNumber = parseInt(seatNumberStr, 10);
+  
+          if (tableId && !isNaN(seatNumber)) {
+            dispatch({ type: 'ASSIGN_SEAT', participantId: dragItem.id, tableId, seatNumber });
           }
         }
       } else {
@@ -190,7 +186,12 @@ function App() {
 
   return (
     <div className="flex h-screen font-sans bg-slate-100">
-      <Sidebar state={state} dispatch={dispatch} onParticipantMouseDown={handleParticipantMouseDown} />
+      <Sidebar 
+        state={state} 
+        dispatch={dispatch} 
+        onParticipantMouseDown={handleParticipantMouseDown}
+        onExportPDF={handleExportPDF}
+      />
       <Workspace
         ref={workspaceRef}
         state={state}
@@ -207,11 +208,10 @@ function App() {
         canRedo={canRedo}
         undo={undo}
         redo={redo}
-        onExportPDF={handleExportPDF}
       />
       {dragItem?.type === 'participant' && (
         <div
-          className="fixed pointer-events-none z-50 bg-blue-500 text-white px-3 py-1 rounded-md shadow-lg"
+          className="fixed pointer-events-none z-50 bg-[#002C5F] text-white px-3 py-1 rounded-md shadow-lg"
           style={{ left: dragPosition.x + 10, top: dragPosition.y + 10 }}
         >
           {dragItem.name}

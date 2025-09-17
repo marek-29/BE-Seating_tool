@@ -55,38 +55,72 @@ export const Table: React.FC<TableProps> = ({
     onUpdate({ id: table.id, chairs: chairCount });
   };
 
+  const isVertical = table.height > table.width;
+
   const renderChairs = () => {
     const chairsOnLongSide = Math.ceil(chairCount / 2);
     const chairElements: React.ReactElement[] = [];
     const chairGap = 15;
     const chairSize = 24;
 
-    for (let i = 0; i < chairCount; i++) {
-      const isTopSide = i < chairsOnLongSide;
-      const sideIndex = isTopSide ? i : i - chairsOnLongSide;
-      const chairsOnThisSide = isTopSide ? chairsOnLongSide : chairCount - chairsOnLongSide;
-      const sideSpacing = table.width / (chairsOnThisSide + 1);
-
-      const x = (sideIndex + 1) * sideSpacing - (chairSize / 2);
-      const y = isTopSide ? -chairSize - chairGap : table.height + chairGap;
-
-      const seatNumber = i + 1;
-      const chairId = `${table.id}_${seatNumber}`;
-      const participantId = assignments[chairId];
-      const participant = participantId ? participants.find(p => p.id === participantId) : null;
-
-      chairElements.push(
-        <Chair
-          key={chairId}
-          chairId={chairId}
-          seatNumber={seatNumber}
-          assignedParticipant={participant || null}
-          style={{ left: `${x}px`, top: `${y}px` }}
-          rotation={table.rotation}
-          isTopSide={isTopSide}
-          onParticipantMouseDown={onParticipantMouseDown}
-        />
-      );
+    if (isVertical) {
+      // Chairs on left and right sides
+      for (let i = 0; i < chairCount; i++) {
+        const isLeftSide = i < chairsOnLongSide;
+        const sideIndex = isLeftSide ? i : i - chairsOnLongSide;
+        const chairsOnThisSide = isLeftSide ? chairsOnLongSide : chairCount - chairsOnLongSide;
+        const sideSpacing = table.height / (chairsOnThisSide + 1);
+        
+        const x = isLeftSide ? -chairSize - chairGap : table.width + chairGap;
+        const y = (sideIndex + 1) * sideSpacing - (chairSize / 2);
+        
+        const seatNumber = i + 1;
+        const chairId = `${table.id}_${seatNumber}`;
+        const participantId = assignments[chairId];
+        const participant = participantId ? participants.find(p => p.id === participantId) : null;
+        
+        chairElements.push(
+          <Chair
+            key={chairId}
+            chairId={chairId}
+            seatNumber={seatNumber}
+            assignedParticipant={participant || null}
+            style={{ left: `${x}px`, top: `${y}px` }}
+            rotation={table.rotation}
+            placement={isLeftSide ? 'left' : 'right'}
+            onParticipantMouseDown={onParticipantMouseDown}
+          />
+        );
+      }
+    } else {
+      // Chairs on top and bottom sides
+      for (let i = 0; i < chairCount; i++) {
+        const isTopSide = i < chairsOnLongSide;
+        const sideIndex = isTopSide ? i : i - chairsOnLongSide;
+        const chairsOnThisSide = isTopSide ? chairsOnLongSide : chairCount - chairsOnLongSide;
+        const sideSpacing = table.width / (chairsOnThisSide + 1);
+  
+        const x = (sideIndex + 1) * sideSpacing - (chairSize / 2);
+        const y = isTopSide ? -chairSize - chairGap : table.height + chairGap;
+  
+        const seatNumber = i + 1;
+        const chairId = `${table.id}_${seatNumber}`;
+        const participantId = assignments[chairId];
+        const participant = participantId ? participants.find(p => p.id === participantId) : null;
+  
+        chairElements.push(
+          <Chair
+            key={chairId}
+            chairId={chairId}
+            seatNumber={seatNumber}
+            assignedParticipant={participant || null}
+            style={{ left: `${x}px`, top: `${y}px` }}
+            rotation={table.rotation}
+            placement={isTopSide ? 'top' : 'bottom'}
+            onParticipantMouseDown={onParticipantMouseDown}
+          />
+        );
+      }
     }
     return chairElements;
   };
@@ -105,23 +139,40 @@ export const Table: React.FC<TableProps> = ({
       }}
       onMouseDown={(e) => onMouseDown(e, table.id)}
     >
-      <div className={`relative w-full h-full bg-white border-2 rounded-lg shadow-lg flex items-center justify-center p-1 ${isSelected ? 'border-blue-500' : 'border-slate-300'}`}>
-        {isSelected ? (
-          <input
-            type="text"
-            value={name}
-            onChange={handleNameChange}
-            onBlur={handleNameBlur}
-            className="text-center font-bold text-slate-700 bg-transparent w-full p-2 outline-none"
-            onMouseDown={(e) => e.stopPropagation()}
-            autoFocus
-            onFocus={(e) => e.target.select()}
-          />
-        ) : (
-          <div className="text-center font-bold text-slate-700 p-2 select-none">
-            {table.name}
-          </div>
-        )}
+      <div className={`relative w-full h-full bg-white border-2 rounded-lg shadow-lg flex items-center justify-center p-1 ${isSelected ? 'border-[#729282]' : 'border-slate-300'}`}>
+        <div className="flex flex-col items-center justify-center w-full px-1">
+            {isSelected ? (
+              <input
+                type="text"
+                value={name}
+                onChange={handleNameChange}
+                onBlur={handleNameBlur}
+                className="w-full text-center font-bold text-slate-700 bg-transparent p-1 outline-none truncate"
+                onMouseDown={(e) => e.stopPropagation()}
+                autoFocus
+                onFocus={(e) => e.target.select()}
+              />
+            ) : (
+              <div className="text-center font-bold text-slate-700 p-1 select-none truncate">
+                {table.name}
+              </div>
+            )}
+            
+            {isSelected && (
+                <div className="mt-1 flex items-center" onMouseDown={e => e.stopPropagation()}>
+                    <label htmlFor={`chairs_${table.id}`} className="mr-1 text-xs font-medium text-slate-600">Stühle:</label>
+                    <input
+                        id={`chairs_${table.id}`}
+                        type="number"
+                        min="0"
+                        value={chairCount}
+                        onChange={handleChairChange}
+                        onBlur={handleChairBlur}
+                        className="w-10 text-center border border-slate-300 rounded text-xs p-0.5"
+                    />
+                </div>
+            )}
+        </div>
 
         {isSelected && (
           <>
@@ -134,30 +185,16 @@ export const Table: React.FC<TableProps> = ({
             </button>
             <div
               onMouseDown={(e) => onRotateMouseDown(e, table.id)}
-              className="absolute -top-3 -left-3 w-7 h-7 bg-green-500 text-white rounded-full flex items-center justify-center cursor-alias hover:bg-green-600 z-10"
+              className="absolute -top-3 -left-3 w-7 h-7 bg-[#002C5F] text-white rounded-full flex items-center justify-center cursor-alias hover:bg-[#00224a] z-10"
             >
               <RotateIcon className="w-4 h-4" />
             </div>
             
             {/* Resize Handles */}
-            <div onMouseDown={(e) => onResizeMouseDown(e, table.id, 'tl')} className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-blue-500 rounded-full cursor-nwse-resize z-20"></div>
-            <div onMouseDown={(e) => onResizeMouseDown(e, table.id, 'tr')} className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-blue-500 rounded-full cursor-nesw-resize z-20"></div>
-            <div onMouseDown={(e) => onResizeMouseDown(e, table.id, 'bl')} className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-blue-500 rounded-full cursor-nesw-resize z-20"></div>
-            <div onMouseDown={(e) => onResizeMouseDown(e, table.id, 'br')} className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-blue-500 rounded-full cursor-nwse-resize z-20"></div>
-
-            <div className="absolute -bottom-10 left-0 w-full flex items-center justify-center" onMouseDown={e => e.stopPropagation()}>
-                <div style={{ transform: `rotate(${-table.rotation}deg)` }} className="bg-white px-2 py-1 rounded-md shadow-md flex items-center text-sm">
-                    <label htmlFor={`chairs_${table.id}`} className="mr-2 font-medium text-slate-600">Chairs:</label>
-                    <input
-                        id={`chairs_${table.id}`}
-                        type="number"
-                        value={chairCount}
-                        onChange={handleChairChange}
-                        onBlur={handleChairBlur}
-                        className="w-12 text-center border border-slate-300 rounded"
-                    />
-                </div>
-            </div>
+            <div onMouseDown={(e) => onResizeMouseDown(e, table.id, 'tl')} className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#729282] rounded-full cursor-nwse-resize z-20"></div>
+            <div onMouseDown={(e) => onResizeMouseDown(e, table.id, 'tr')} className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#729282] rounded-full cursor-nesw-resize z-20"></div>
+            <div onMouseDown={(e) => onResizeMouseDown(e, table.id, 'bl')} className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#729282] rounded-full cursor-nesw-resize z-20"></div>
+            <div onMouseDown={(e) => onResizeMouseDown(e, table.id, 'br')} className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#729282] rounded-full cursor-nwse-resize z-20"></div>
           </>
         )}
       </div>

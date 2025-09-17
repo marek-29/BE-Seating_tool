@@ -7,7 +7,6 @@ interface ToolbarProps {
   onRedo: () => void;
   canUndo: boolean;
   canRedo: boolean;
-  onExportPDF: () => void;
   zoom: number;
   onZoomChange: (newZoom: number) => void;
 }
@@ -23,21 +22,33 @@ const ToolButton: React.FC<{ onClick?: () => void; disabled?: boolean; children:
     </button>
 );
 
+const LabeledButton: React.FC<{ onClick?: () => void; disabled?: boolean; children: React.ReactNode; title: string; label: string }> = ({ onClick, disabled, children, title, label }) => (
+    <button
+        title={title}
+        onClick={onClick}
+        disabled={disabled}
+        className="flex items-center justify-center px-3 h-10 bg-white rounded-md shadow-md text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all space-x-2"
+    >
+        {children}
+        <span className="text-sm font-medium whitespace-nowrap">{label}</span>
+    </button>
+);
+
+
 export const Toolbar: React.FC<ToolbarProps> = ({
   onAddTable,
   onUndo,
   onRedo,
   canUndo,
   canRedo,
-  onExportPDF,
   zoom,
   onZoomChange,
 }) => {
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-white/80 backdrop-blur-sm p-2 rounded-lg shadow-lg flex items-center space-x-2">
-      <ToolButton onClick={onAddTable} title="Add Table">
+      <LabeledButton onClick={onAddTable} title="Tisch hinzufügen" label="Tisch hinzufügen">
         <TableIcon className="w-5 h-5" />
-      </ToolButton>
+      </LabeledButton>
       
       <div className="w-px h-6 bg-slate-300 mx-1"></div>
 
@@ -56,12 +67,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       <span className="text-sm font-medium text-slate-600 w-12 text-center">{(zoom * 100).toFixed(0)}%</span>
       <ToolButton onClick={() => onZoomChange(Math.min(2, zoom + 0.1))} title="Zoom In">
         <ZoomInIcon className="w-5 h-5" />
-      </ToolButton>
-      
-      <div className="w-px h-6 bg-slate-300 mx-1"></div>
-
-      <ToolButton onClick={onExportPDF} title="Export as PDF">
-        <PdfIcon className="w-5 h-5" />
       </ToolButton>
     </div>
   );

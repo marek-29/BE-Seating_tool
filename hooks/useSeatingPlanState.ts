@@ -5,6 +5,7 @@ const initialState: SeatingPlan = {
   tables: [],
   participants: [],
   assignments: {},
+  floorplan: null,
 };
 
 type StateWithHistory = {
@@ -99,9 +100,9 @@ const produceNewState = (currentState: SeatingPlan, action: Action): SeatingPlan
         id: `t_${Date.now()}`,
         name: `Tisch ${currentState.tables.length + 1}`,
         x: 100, y: 100,
-        width: 200, height: 80,
+        width: 80, height: 204,
         rotation: 0,
-        chairs: 6,
+        chairs: 8,
       };
       return { ...currentState, tables: [...currentState.tables, newTable] };
     }
@@ -159,7 +160,15 @@ const produceNewState = (currentState: SeatingPlan, action: Action): SeatingPlan
       return { ...currentState, assignments: newAssignments };
     }
     case 'LOAD_PLAN': {
-      return action.plan;
+      return { ...action.plan, floorplan: action.plan.floorplan || null };
+    }
+    case 'LOAD_TEMPLATE': {
+        return {
+            ...currentState, // Keep existing participants
+            tables: action.template.tables,
+            assignments: action.template.assignments, // Reset assignments
+            floorplan: action.template.floorplan,
+        }
     }
     default:
       return currentState;

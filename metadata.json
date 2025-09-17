@@ -1,5 +1,5 @@
 {
   "name": "Berlin Event Seating Tool",
-  "description": "An interactive web application for planning event seating arrangements. Users can manage participants, design floor layouts with tables and chairs, assign guests using drag-and-drop, and export the seating plan.",
+  "description": "An interactive web application for planning event seating arrangements for Berlinevent. Users can manage participants, design floor layouts with tables and chairs, assign guests using drag-and-drop, and export the seating plan.",
   "requestFramePermissions": []
 }

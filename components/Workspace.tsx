@@ -2,6 +2,7 @@ import React from 'react';
 import { SeatingPlan } from '../types';
 import { Table } from './Table';
 import { Toolbar } from './Toolbar';
+import { Studio1Floorplan } from './Studio1Floorplan';
 
 type Handle = 'tl' | 'tr' | 'bl' | 'br';
 
@@ -20,7 +21,6 @@ interface WorkspaceProps {
   canRedo: boolean;
   undo: () => void;
   redo: () => void;
-  onExportPDF: () => void;
 }
 
 export const Workspace = React.forwardRef<HTMLDivElement, WorkspaceProps>(({
@@ -38,14 +38,13 @@ export const Workspace = React.forwardRef<HTMLDivElement, WorkspaceProps>(({
   canRedo,
   undo,
   redo,
-  onExportPDF
 }, ref) => {
-  const { tables, participants, assignments } = state;
+  const { tables, participants, assignments, floorplan } = state;
   
   const handleWorkspaceClick = (e: React.MouseEvent) => {
-    const targetId = (e.target as HTMLElement).id;
-    // Deselect if the click is on the container, the workspace grid, or the seating plan background
-    if (targetId === 'workspace-container' || targetId === 'workspace' || targetId === 'seating-plan') {
+    const target = e.target as HTMLElement;
+    // Deselect if the click is on the container, the workspace grid, or the floorplan SVG
+    if (target.id === 'workspace-container' || target.id === 'workspace' || target.closest('#floorplan-svg')) {
         setSelectedTableId(null);
     }
   };
@@ -57,7 +56,6 @@ export const Workspace = React.forwardRef<HTMLDivElement, WorkspaceProps>(({
       linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
       linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px)
     `,
-    backgroundSize: `var(--grid-size) var(--grid-size)`,
     backgroundColor: 'white',
   };
 
@@ -69,7 +67,6 @@ export const Workspace = React.forwardRef<HTMLDivElement, WorkspaceProps>(({
         onRedo={redo}
         canUndo={canUndo}
         canRedo={canRedo}
-        onExportPDF={onExportPDF}
         zoom={zoom}
         onZoomChange={onZoomChange}
       />
@@ -83,6 +80,7 @@ export const Workspace = React.forwardRef<HTMLDivElement, WorkspaceProps>(({
           className="relative origin-top-left" 
           style={{ transform: `scale(${zoom})`, width: `${100/zoom}%`, height: `${100/zoom}%`}}
         >
+          {floorplan === 'studio1' && <Studio1Floorplan />}
           {tables.map(table => (
             <Table
               key={table.id}

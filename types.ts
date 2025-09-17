@@ -27,6 +27,7 @@ export interface SeatingPlan {
   tables: Table[];
   participants: Participant[];
   assignments: Assignment;
+  floorplan?: 'studio1' | null;
 }
 
 export type Action =
@@ -39,6 +40,7 @@ export type Action =
   | { type: 'ASSIGN_SEAT'; participantId: string; tableId: string; seatNumber: number }
   | { type: 'UNASSIGN_SEAT'; participantId: string }
   | { type: 'LOAD_PLAN'; plan: SeatingPlan }
+  | { type: 'LOAD_TEMPLATE'; template: SeatingPlan }
   | { type: 'UNDO' }
   | { type: 'REDO' }
   | { type: 'RESET' };

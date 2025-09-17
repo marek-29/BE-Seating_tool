@@ -7,22 +7,64 @@ interface ChairProps {
   assignedParticipant: Participant | null;
   style: React.CSSProperties;
   rotation: number;
-  isTopSide: boolean;
+  placement: 'top' | 'bottom' | 'left' | 'right';
   onParticipantMouseDown?: (e: React.MouseEvent, participantId: string) => void;
 }
 
-export const Chair: React.FC<ChairProps> = ({ chairId, seatNumber, assignedParticipant, style, rotation, isTopSide, onParticipantMouseDown }) => {
+export const Chair: React.FC<ChairProps> = ({ chairId, seatNumber, assignedParticipant, style, rotation, placement, onParticipantMouseDown }) => {
   const nameParts = assignedParticipant?.name.split(' ') || [];
   const firstName = nameParts[0] || '';
   const lastName = nameParts.slice(1).join(' ') || '';
 
-  const nameStyle: React.CSSProperties = {
-    transform: `translateX(-50%) rotate(${-rotation}deg)`,
-    left: '50%',
-    ...(isTopSide
-      ? { bottom: '100%', marginBottom: '8px' }
-      : { top: '100%', marginTop: '8px' }),
+  const getNameStyle = (): React.CSSProperties => {
+    const baseTransform = `rotate(${-rotation}deg)`;
+    switch (placement) {
+      case 'top':
+        return {
+          bottom: '100%',
+          left: '50%',
+          transform: `translateX(-50%) ${baseTransform}`,
+          marginBottom: '8px',
+        };
+      case 'bottom':
+        return {
+          top: '100%',
+          left: '50%',
+          transform: `translateX(-50%) ${baseTransform}`,
+          marginTop: '8px',
+        };
+      case 'left':
+        return {
+          right: '100%',
+          top: '50%',
+          transform: `translateY(-50%) ${baseTransform}`,
+          marginRight: '8px',
+        };
+      case 'right':
+        return {
+          left: '100%',
+          top: '50%',
+          transform: `translateY(-50%) ${baseTransform}`,
+          marginLeft: '8px',
+        };
+      default:
+        return {};
+    }
   };
+
+  const nameStyle = getNameStyle();
+
+  const getContainerAlignment = () => {
+    switch (placement) {
+      case 'left':
+        return 'items-end text-right';
+      case 'right':
+        return 'items-start text-left';
+      default:
+        return 'items-center text-center';
+    }
+  };
+
 
   return (
     <div
@@ -38,7 +80,7 @@ export const Chair: React.FC<ChairProps> = ({ chairId, seatNumber, assignedParti
     >
       {assignedParticipant && (
         <div
-          className="absolute w-max flex flex-col items-center justify-center text-center text-xs text-slate-700 leading-tight"
+          className={`absolute w-max flex flex-col justify-center text-xs text-slate-700 leading-tight ${getContainerAlignment()}`}
           style={nameStyle}
         >
           <span className="font-semibold">{firstName}</span>
@@ -48,7 +90,7 @@ export const Chair: React.FC<ChairProps> = ({ chairId, seatNumber, assignedParti
       <div
         className={`relative w-full h-full rounded-md border-2 font-bold text-sm transition-colors ${
           assignedParticipant
-            ? 'bg-blue-500 border-blue-700 text-white'
+            ? 'bg-[#729282] border-[#5a7568] text-white'
             : 'bg-white border-slate-400 text-slate-500'
         }`}
       >

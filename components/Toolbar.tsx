@@ -1,5 +1,5 @@
 import React from 'react';
-import { UndoIcon, RedoIcon, PdfIcon, ZoomInIcon, ZoomOutIcon, TableIcon } from './icons';
+import { UndoIcon, RedoIcon, ZoomInIcon, ZoomOutIcon, TableIcon } from './icons';
 
 interface ToolbarProps {
   onAddTable: () => void;

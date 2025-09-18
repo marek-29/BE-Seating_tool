@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table as TableType, Participant } from '../types';
+import { Table as TableType, Participant } from '@/types';
 import { Chair } from './Chair';
 import { TrashIcon, RotateIcon } from './icons';
 

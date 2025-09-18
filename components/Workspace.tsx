@@ -1,5 +1,5 @@
 import React from 'react';
-import { SeatingPlan } from '../types';
+import { SeatingPlan } from '@/types';
 import { Table } from './Table';
 import { Toolbar } from './Toolbar';
 import { Studio1Floorplan } from './Studio1Floorplan';

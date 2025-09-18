@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { SeatingPlan, Participant, Action } from '../types';
+import { SeatingPlan, Participant, Action } from '@/types';
 import { AddIcon, TrashIcon, UploadIcon, DownloadIcon, PdfIcon } from './icons';
-import { importFromExcel, exportToExcel, importPlanFromJSON, exportPlanToJSON } from '../lib/fileUtils';
-import { studio1Template } from '../lib/templates';
+import { importFromExcel, exportToExcel, importPlanFromJSON, exportPlanToJSON } from '@/lib/fileUtils';
+import { studio1Template } from '@/lib/templates';
 
 interface ParticipantItemProps {
   participant: Participant;

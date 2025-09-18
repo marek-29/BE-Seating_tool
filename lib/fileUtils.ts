@@ -1,4 +1,4 @@
-import { Participant, SeatingPlan } from '../types';
+import { Participant, SeatingPlan } from '@/types';
 
 declare var XLSX: any;
 declare var jspdf: any;
@@ -25,16 +25,17 @@ export const importFromExcel = (file: File): Promise<Participant[]> => {
           
         resolve(participants);
       } catch (e) {
-        reject(e);
+        console.error("Error reading Excel file:", e);
+        reject(new Error("Fehler beim Lesen der Excel-Datei."));
       }
     };
-    reader.onerror = reject;
+    reader.onerror = (error) => reject(error);
     reader.readAsArrayBuffer(file);
   });
 };
 
 export const exportToExcel = (state: SeatingPlan) => {
-  const data: any[] = [['Name', 'Table', 'Seat']];
+  const data: any[] = [['Name', 'Tisch', 'Platz']];
   const participantMap = new Map(state.participants.map(p => [p.id, p.name]));
   const tableMap = new Map(state.tables.map(t => [t.id, t.name]));
 
@@ -62,7 +63,7 @@ export const exportToExcel = (state: SeatingPlan) => {
   // Add unassigned participants
   state.participants.forEach(p => {
     if (!assignedParticipants.has(p.id)) {
-      data.push([p.name, 'Unassigned', '']);
+      data.push([p.name, 'Nicht zugewiesen', '']);
     }
   });
 
@@ -107,16 +108,15 @@ export const exportToPDF = async (viewportElement: HTMLElement) => {
         
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jspdf.jsPDF({
-            orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+            orientation: 'landscape',
             unit: 'px',
             format: [canvas.width, canvas.height]
         });
         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save("seating-plan.pdf");
+        pdf.save("seating_plan.pdf");
 
     } catch (error) {
-        console.error("Failed to export PDF:", error);
-        alert("Sorry, there was an error exporting the PDF.");
+        console.error("Error exporting to PDF:", error);
     } finally {
         if (toolbar) {
             toolbar.style.visibility = 'visible';
@@ -129,16 +129,16 @@ export const exportPlanToJSON = (state: SeatingPlan) => {
     const jsonString = JSON.stringify(state, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'seating-plan.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'seating_plan.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("Failed to export plan to JSON:", error);
-    alert("Sorry, there was an error saving the plan.");
+    console.error("Error exporting plan to JSON:", error);
+    alert("Fehler beim Speichern des Plans.");
   }
 };
 
@@ -147,23 +147,20 @@ export const importPlanFromJSON = (file: File): Promise<SeatingPlan> => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const result = event.target?.result as string;
-        const parsed = JSON.parse(result);
-
+        const jsonString = event.target?.result as string;
+        const plan: SeatingPlan = JSON.parse(jsonString);
         // Basic validation
-        if (typeof parsed === 'object' && parsed !== null &&
-            'tables' in parsed && Array.isArray(parsed.tables) &&
-            'participants' in parsed && Array.isArray(parsed.participants) &&
-            'assignments' in parsed && typeof parsed.assignments === 'object') {
-          resolve(parsed as SeatingPlan);
+        if (plan && Array.isArray(plan.tables) && Array.isArray(plan.participants) && typeof plan.assignments === 'object') {
+          resolve(plan);
         } else {
-          throw new Error('Invalid plan file format.');
+          reject(new Error("Ungültige JSON-Struktur für einen Bestuhlungsplan."));
         }
       } catch (e) {
-        reject(e);
+        console.error("Error parsing JSON file:", e);
+        reject(new Error("Fehler beim Lesen der JSON-Datei."));
       }
     };
-    reader.onerror = reject;
+    reader.onerror = (error) => reject(error);
     reader.readAsText(file);
   });
 };

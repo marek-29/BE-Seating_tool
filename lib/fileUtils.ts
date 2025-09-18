@@ -1,4 +1,4 @@
-import { Participant, SeatingPlan, Table } from '@/types';
+import { Participant, SeatingPlan, Table } from '../types';
 
 declare var XLSX: any;
 declare var jspdf: any;

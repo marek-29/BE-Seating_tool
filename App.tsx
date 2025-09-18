@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Sidebar } from '@/components/Sidebar';
-import { Workspace } from '@/components/Workspace';
-import { useSeatingPlanState } from '@/hooks/useSeatingPlanState';
-import { exportToPDF } from '@/lib/fileUtils';
-import { Table as TableType } from '@/types';
+import { Sidebar } from './components/Sidebar';
+import { Workspace } from './components/Workspace';
+import { useSeatingPlanState } from './hooks/useSeatingPlanState';
+import { exportToPDF } from './lib/fileUtils';
+import { Table as TableType } from './types';
 
 type Handle = 'tl' | 'tr' | 'bl' | 'br';
 

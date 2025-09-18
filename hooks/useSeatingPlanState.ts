@@ -1,6 +1,6 @@
 
 import { useReducer, useCallback } from 'react';
-import { SeatingPlan, Action, Participant, Table } from '@/types';
+import { SeatingPlan, Action, Participant, Table } from '../types';
 
 const initialState: SeatingPlan = {
   tables: [],

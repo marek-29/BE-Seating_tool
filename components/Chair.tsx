@@ -1,5 +1,5 @@
 import React from 'react';
-import { Participant } from '@/types';
+import { Participant } from '../types';
 
 interface ChairProps {
   chairId: string;

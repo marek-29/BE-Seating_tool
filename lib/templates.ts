@@ -1,4 +1,4 @@
-import { SeatingPlan } from '@/types';
+import { SeatingPlan } from '../types';
 
 export const studio1Template: SeatingPlan = {
   tables: [],

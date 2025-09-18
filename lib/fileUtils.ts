@@ -1,4 +1,4 @@
-import { Participant, SeatingPlan } from '@/types';
+import { Participant, SeatingPlan, Table } from '@/types';
 
 declare var XLSX: any;
 declare var jspdf: any;
@@ -36,8 +36,8 @@ export const importFromExcel = (file: File): Promise<Participant[]> => {
 
 export const exportToExcel = (state: SeatingPlan) => {
   const data: any[] = [['Name', 'Tisch', 'Platz']];
-  const participantMap = new Map(state.participants.map(p => [p.id, p.name]));
-  const tableMap = new Map(state.tables.map(t => [t.id, t.name]));
+  const participantMap = new Map(state.participants.map((p: Participant) => [p.id, p.name]));
+  const tableMap = new Map(state.tables.map((t: Table) => [t.id, t.name]));
 
   const assignedParticipants = new Set<string>();
 
@@ -53,7 +53,7 @@ export const exportToExcel = (state: SeatingPlan) => {
         const tableName = tableMap.get(tableId);
 
         if (participantName && tableName && seatNumber) {
-          data.push([participantName, tableName, seatNumber]);
+          data.push([participantName, tableName, seatNumber ?? '']);
           assignedParticipants.add(participantId);
         }
       }
@@ -61,7 +61,7 @@ export const exportToExcel = (state: SeatingPlan) => {
   });
 
   // Add unassigned participants
-  state.participants.forEach(p => {
+  state.participants.forEach((p: Participant) => {
     if (!assignedParticipants.has(p.id)) {
       data.push([p.name, 'Nicht zugewiesen', '']);
     }

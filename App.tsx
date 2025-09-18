@@ -5,7 +5,7 @@ import { Header } from './components/Header';
 import { useSeatingPlanState } from './hooks/useSeatingPlanState';
 import { exportToPDF, importFromExcel, importPlanFromJSON, exportPlanToJSON, exportToExcel } from './lib/fileUtils';
 import { studio1Template } from './lib/templates';
-import { Table as TableType, SeatingPlan } from './types';
+import { Table as TableType } from './types';
 
 type Handle = 'tl' | 'tr' | 'bl' | 'br';
 
@@ -26,11 +26,12 @@ function App() {
   const planFileInputRef = useRef<HTMLInputElement>(null);
   
   const handleExportPDF = useCallback(() => {
-    if (!workspaceRef.current) return;
+    const currentWorkspace = workspaceRef.current;
+    if (!currentWorkspace) return;
 
     setSelectedTableId(null);
     setTimeout(() => {
-        exportToPDF(workspaceRef.current);
+        exportToPDF(currentWorkspace);
     }, 100);
   }, []);
 

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Workspace } from './components/Workspace';
+import { Header } from './components/Header';
 import { useSeatingPlanState } from './hooks/useSeatingPlanState';
-import { exportToPDF } from './lib/fileUtils';
-import { Table as TableType } from './types';
+import { exportToPDF, importFromExcel, importPlanFromJSON, exportPlanToJSON, exportToExcel } from './lib/fileUtils';
+import { studio1Template } from './lib/templates';
+import { Table as TableType, SeatingPlan } from './types';
 
 type Handle = 'tl' | 'tr' | 'bl' | 'br';
 
@@ -20,14 +22,15 @@ function App() {
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const workspaceRef = useRef<HTMLDivElement>(null);
+  const participantFileInputRef = useRef<HTMLInputElement>(null);
+  const planFileInputRef = useRef<HTMLInputElement>(null);
   
   const handleExportPDF = useCallback(() => {
-    const currentWorkspace = workspaceRef.current;
-    if (!currentWorkspace) return;
+    if (!workspaceRef.current) return;
 
     setSelectedTableId(null);
     setTimeout(() => {
-        exportToPDF(currentWorkspace);
+        exportToPDF(workspaceRef.current);
     }, 100);
   }, []);
 
@@ -143,79 +146,126 @@ function App() {
             table: { id: dragItem.id, x: newX, y: newY, width: newWidth, height: newHeight },
         });
     }
-  }, [dragItem, dispatch, zoom]);
+  }, [dragItem, zoom, dispatch]);
 
   const handleMouseUp = useCallback((e: MouseEvent) => {
-    if (!dragItem) return;
-
-    if (dragItem.type === 'participant') {
+    if (dragItem?.type === 'participant') {
       const el = document.elementFromPoint(e.clientX, e.clientY);
-      const chairElement = el?.closest('[id^="t_"]');
+      const chairDiv = el?.closest('[id^="t_"]');
 
-      if (chairElement) {
-        const idParts = chairElement.id.split('_');
-        // Ensure we have at least ['t', 'timestamp', 'seatNumber']
-        if (idParts.length >= 3) {
-          const seatNumberStr = idParts.pop();
-          if (seatNumberStr) {
-            const tableId = idParts.join('_');
-            const seatNumber = parseInt(seatNumberStr, 10);
-    
-            if (tableId && !isNaN(seatNumber)) {
-              dispatch({ type: 'ASSIGN_SEAT', participantId: dragItem.id, tableId, seatNumber });
-            }
+      if (chairDiv && chairDiv.id.includes('_')) {
+          const chairIdParts = chairDiv.id.split('_');
+          const seatNumber = parseInt(chairIdParts.pop()!, 10);
+          const tableId = chairIdParts.join('_');
+          
+          if (tableId && !isNaN(seatNumber)) {
+              dispatch({ type: 'ASSIGN_SEAT', participantId: dragItem.id, tableId: tableId, seatNumber });
           }
-        }
       } else {
-        const isOverSidebar = e.clientX < 320; // 320px is sidebar width
-        if (!isOverSidebar) {
-            dispatch({ type: 'UNASSIGN_SEAT', participantId: dragItem.id });
+        const sidebar = el?.closest('.w-80');
+        if (!sidebar) {
+           dispatch({ type: 'UNASSIGN_SEAT', participantId: dragItem.id });
         }
       }
     }
     setDragItem(null);
   }, [dragItem, dispatch]);
-
+  
   useEffect(() => {
-    if (dragItem) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    }
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [dragItem, handleMouseMove, handleMouseUp]);
+  }, [handleMouseMove, handleMouseUp]);
 
+  const handleImportParticipantsClick = () => {
+    participantFileInputRef.current?.click();
+  };
+  
+  const handleParticipantFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const participants = await importFromExcel(file);
+        dispatch({ type: 'IMPORT_PARTICIPANTS', participants });
+      } catch (error) {
+        console.error("Failed to import participants:", error);
+        alert("Fehler beim Importieren der Teilnehmer. Bitte überprüfen Sie das Dateiformat.");
+      }
+    }
+    if(e.target) e.target.value = '';
+  };
+
+  const handleSavePlanClick = () => {
+    exportPlanToJSON(state);
+  };
+
+  const handleLoadPlanClick = () => {
+    planFileInputRef.current?.click();
+  };
+
+  const handlePlanFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const plan = await importPlanFromJSON(file);
+        dispatch({ type: 'LOAD_PLAN', plan });
+      } catch (error) {
+        console.error("Failed to load plan:", error);
+        alert("Fehler beim Laden des Plans. Die Datei ist möglicherweise beschädigt oder hat ein ungültiges Format.");
+      }
+    }
+     if(e.target) e.target.value = '';
+  };
+  
+  const handleLoadTemplateClick = () => {
+      dispatch({ type: 'LOAD_TEMPLATE', template: studio1Template });
+      setSelectedTableId(null);
+  };
+  
   return (
-    <div className="flex h-screen font-sans bg-slate-100">
-      <Sidebar 
-        state={state} 
-        dispatch={dispatch} 
-        onParticipantMouseDown={handleParticipantMouseDown}
+    <div className="flex flex-col h-screen font-sans bg-slate-50 text-slate-900">
+      <input type="file" ref={participantFileInputRef} onChange={handleParticipantFileChange} className="hidden" accept=".xlsx" />
+      <input type="file" ref={planFileInputRef} onChange={handlePlanFileChange} className="hidden" accept=".json" />
+
+      <Header
+        onImportParticipants={handleImportParticipantsClick}
+        onExportParticipants={() => exportToExcel(state)}
+        onSavePlan={handleSavePlanClick}
+        onLoadPlan={handleLoadPlanClick}
         onExportPDF={handleExportPDF}
+        onLoadTemplate={handleLoadTemplateClick}
       />
-      <Workspace
-        ref={workspaceRef}
-        state={state}
-        dispatch={dispatch}
-        selectedTableId={selectedTableId}
-        setSelectedTableId={setSelectedTableId}
-        onTableMouseDown={handleTableMouseDown}
-        onRotateMouseDown={handleRotateMouseDown}
-        onResizeMouseDown={handleResizeMouseDown}
-        onParticipantMouseDown={handleParticipantMouseDown}
-        zoom={zoom}
-        onZoomChange={setZoom}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        undo={undo}
-        redo={redo}
-      />
+      <div className="flex flex-grow overflow-hidden">
+        <Sidebar state={state} dispatch={dispatch} onParticipantMouseDown={handleParticipantMouseDown} />
+        <Workspace
+          ref={workspaceRef}
+          state={state}
+          dispatch={dispatch}
+          selectedTableId={selectedTableId}
+          setSelectedTableId={setSelectedTableId}
+          onTableMouseDown={handleTableMouseDown}
+          onRotateMouseDown={handleRotateMouseDown}
+          onResizeMouseDown={handleResizeMouseDown}
+          onParticipantMouseDown={handleParticipantMouseDown}
+          zoom={zoom}
+          onZoomChange={setZoom}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          undo={undo}
+          redo={redo}
+        />
+      </div>
+
       {dragItem?.type === 'participant' && (
-        <div
-          className="fixed pointer-events-none z-50 bg-[#002C5F] text-white px-3 py-1 rounded-md shadow-lg"
-          style={{ left: dragPosition.x + 10, top: dragPosition.y + 10 }}
+        <div 
+          className="absolute pointer-events-none p-2 bg-white rounded-md shadow-lg text-sm font-medium z-50"
+          style={{
+            left: dragPosition.x + 10,
+            top: dragPosition.y + 10,
+          }}
         >
           {dragItem.name}
         </div>

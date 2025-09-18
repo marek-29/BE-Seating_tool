@@ -1,8 +1,8 @@
 import { SeatingPlan } from '../types';
 
-export const studio1Template: SeatingPlan = {
+export const allianzTemplate: SeatingPlan = {
   tables: [],
   participants: [],
   assignments: {},
-  floorplan: 'studio1',
+  floorplan: null
 };

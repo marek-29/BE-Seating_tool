@@ -1,4 +1,3 @@
-
 import { useReducer, useCallback } from 'react';
 import { SeatingPlan, Action, Participant, Table } from '../types';
 
@@ -164,12 +163,10 @@ const produceNewState = (currentState: SeatingPlan, action: Action): SeatingPlan
       return { ...action.plan, floorplan: action.plan.floorplan || null };
     }
     case 'LOAD_TEMPLATE': {
+        // Overwrite everything with the template, including participants
         return {
-            ...currentState, // Keep existing participants
-            tables: action.template.tables,
-            assignments: action.template.assignments, // Reset assignments
-            floorplan: action.template.floorplan,
-        }
+            ...action.template
+        };
     }
     default:
       return currentState;

@@ -23,7 +23,7 @@ const ParticipantItem: React.FC<ParticipantItemProps> = ({ participant, assignme
       <div>
         <p className="font-medium text-slate-800">{participant.name}</p>
         {isAssigned && (
-          <p className="text-xs text-[#5a7568]">{`${assignment.table}, Platz ${assignment.seat}`}</p>
+          <p className="text-xs text-[#5a7568]">{`${assignment.table}, Seat ${assignment.seat}`}</p>
         )}
       </div>
       <button onClick={() => onDelete(participant.id)} className="text-slate-400 hover:text-red-500 p-1">
